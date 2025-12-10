@@ -36,7 +36,7 @@
             <div class="max-w-sm mx-auto w-full">
                 <div class="mb-10 text-center md:text-left flex flex-col items-center md:items-start">
                     <!-- LOGO PRINCIPAL -->
-                    <img src="https://github.com/hmedinab18/Team_Cristopher/blob/main/Logo_TEAM_%20Cristopher.png?raw=true" alt="Team Cristopher" class="h-24 mb-4 object-contain">
+                    <img src="https://via.placeholder.com/300x100?text=Logo_TEAM_Cristopher" alt="Team Cristopher" class="h-24 mb-4 object-contain">
                     <p class="text-slate-500 mt-2">Inicia sesión para gestionar.</p>
                 </div>
                 
@@ -54,7 +54,7 @@
                     </button>
                 </form>
                 <div class="mt-8 text-center">
-                    <p class="text-xs text-slate-400">Credenciales por defecto: <b>Bienvenido</b></p>
+                    <p class="text-xs text-slate-400">Credenciales por defecto: <b>usuario / usuario</b></p>
                 </div>
             </div>
         </div>
@@ -66,7 +66,7 @@
 
             <div class="relative z-10 max-w-2xl w-full text-center flex flex-col items-center">
                 <!-- LOGO EN KIOSCO -->
-                <img src="https://github.com/hmedinab18/Team_Cristopher/blob/main/Logo_TEAM_%20Cristopher.png?raw=true" class="h-40 mb-8 object-contain drop-shadow-lg">
+                <img src="https://via.placeholder.com/400x150?text=Logo_TEAM_Cristopher" alt="Team Cristopher" class="h-40 mb-8 object-contain drop-shadow-lg">
 
                 <p class="text-slate-300 text-lg mb-8">Ingresa tu documento para registrar tu ingreso ahora.</p>
 
@@ -169,10 +169,15 @@
         let API_TOKEN = localStorage.getItem('gympro_token') || "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6Im1vYmlsZW5ldGZpamFAZ21haWwuY29tIn0.p96PEX6kNXdguiZk1jpodcUHgUaXRwLi3DzsGzkxsBY";
         
         // --- 2. INICIALIZACIÓN DE DATOS ---
+        
+        // Usuarios - LÓGICA MODIFICADA PARA NO RECREAR SIEMPRE
         let existingUsers = safeParse('gympro_users', []);
-        if (existingUsers.length === 0 || !existingUsers.find(u => u.username === 'usuario')) {
+        
+        // Solo crear usuario por defecto si la lista está VACÍA.
+        // Si borras el usuario "usuario" pero tienes otro admin, no se volverá a crear.
+        if (existingUsers.length === 0) {
             const defaultUser = { username: 'usuario', password: 'usuario', role: 'admin' };
-            if(!existingUsers.some(u => u.username === 'usuario')) existingUsers.push(defaultUser);
+            existingUsers.push(defaultUser);
             localStorage.setItem('gympro_users', JSON.stringify(existingUsers));
         }
 
@@ -218,7 +223,7 @@
             students: safeParse('gympro_students', []),
             sales: safeParse('gympro_sales', []),
             attendanceLogs: safeParse('gympro_logs', []),
-            users: safeParse('gympro_users', []),
+            users: safeParse('gympro_users', []), // Se carga lo que hay en localStorage (sin forzar usuario default si no está vacío)
             products: rawProducts,
             plans: existingPlans,
             expenses: safeParse('gympro_expenses', []),
@@ -241,14 +246,11 @@
             const user = db.users.find(user => user.username === u && user.password === p);
             if (user) {
                 currentUser = user;
-                if(!currentUser.role) currentUser.role = 'vendedor';
-                
+                if(!currentUser.role) currentUser.role = 'vendedor'; 
                 document.getElementById('current-user-display').innerText = `Usuario: ${user.username}`;
                 document.getElementById('current-role-display').innerText = user.role.toUpperCase();
-                
                 const adminMenu = document.getElementById('admin-menu-section');
                 if (user.role === 'admin') adminMenu.classList.remove('hidden'); else adminMenu.classList.add('hidden');
-                
                 document.getElementById('landing-screen').classList.add('hidden');
                 document.getElementById('app-layout').classList.remove('hidden');
                 navigate('attendance'); 
@@ -266,6 +268,7 @@
         function navigate(view) {
             if (view === 'config' && (!currentUser || currentUser.role !== 'admin')) return showToast('Acceso denegado: Solo administradores', 'error');
             
+            // Reset bloqueos al cambiar de pestaña
             inventoryUnlocked = false; financeUnlocked = false; directoryUnlocked = false;
 
             document.querySelectorAll('.nav-btn').forEach(b => {
@@ -277,7 +280,6 @@
 
             const container = document.getElementById('content-area');
             container.innerHTML = '';
-
             try {
                 switch(view) {
                     case 'attendance': renderAttendance(container); break;
@@ -359,7 +361,7 @@
             c.innerHTML = `<div class="fade-in max-w-5xl mx-auto space-y-6"><div class="flex items-center gap-3"><h2 class="text-2xl font-bold text-slate-800">Reporte Financiero</h2><span class="bg-blue-100 text-blue-700 text-xs px-2 py-1 rounded font-bold border border-blue-200"><i class="fas fa-lock-open mr-1"></i>DESBLOQUEADO</span></div><div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden"><table class="w-full text-left"><thead><tr class="bg-slate-50 text-xs uppercase font-bold text-slate-500"><th class="p-3">Fecha</th><th class="p-3">Tipo</th><th class="p-3">Desc.</th><th class="p-3 text-right">Monto</th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
         }
 
-        // 7. CONFIGURACIÓN
+        // 7. CONFIGURACIÓN (SIN GESTION DE PLANES)
         function renderConfig(container) {
             const isAdmin = currentUser && currentUser.role === 'admin';
             if (!isAdmin) return container.innerHTML = `<div class="flex flex-col items-center justify-center h-96 text-center"><div class="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mb-6 text-slate-400"><i class="fas fa-user-shield text-4xl"></i></div><h3 class="text-xl font-bold text-slate-800 mb-2">Acceso Restringido</h3><p class="text-slate-500 max-w-sm mx-auto">Solo los usuarios con rol de <b>Administrador</b> pueden acceder.</p></div>`;
@@ -381,7 +383,7 @@
                 </div></div>`;
         }
 
-        // --- FUNCIONES LÓGICAS ---
+        // --- FUNCIONES LOGICAS ---
         function downloadDirectory() {
             const filtered = db.students.filter(s => {
                 const d = new Date(s.fechaInicio||s.registro);
@@ -414,7 +416,7 @@
             
             if(!productId) return showToast("Seleccione un producto", "error");
             
-            const product = db.products.find(p => p.id == productId);
+            const product = db.products.find(p => p.id == productId); // FIX: loose comparison
             
             if(!product) return showToast("Error: Producto no encontrado", "error");
             if(product.stock <= 0) return showToast("¡Producto sin stock!", "error");
@@ -430,20 +432,42 @@
 
         function deleteProduct(id) {
             if(confirm('¿Eliminar producto?')) {
-                db.products = db.products.filter(p => p.id != id);
+                db.products = db.products.filter(p => p.id != id); // FIX: loose comparison
                 saveData();
                 const activeView = document.querySelector('.nav-btn.active').id;
                 if(activeView === 'nav-inventory') renderInventory(document.getElementById('content-area'));
             }
         }
 
+        function deleteUser(username) {
+            // Protección: No borrar el único usuario que queda
+            if (db.users.length <= 1) return showToast('No puedes borrar el único usuario del sistema', 'error');
+
+            if(confirm(`¿Estás seguro de eliminar al usuario ${username}?`)) {
+                // Eliminar usuario
+                db.users = db.users.filter(u => u.username !== username);
+                // Guardar cambios
+                localStorage.setItem('gympro_users', JSON.stringify(db.users));
+                
+                // Si me borré a mí mismo, salir
+                if (currentUser && currentUser.username === username) {
+                    alert("Has eliminado tu propio usuario. Cerrando sesión.");
+                    logout();
+                } else {
+                    showToast("Usuario eliminado definitivamente");
+                    renderConfig(document.getElementById('content-area'));
+                }
+            }
+        }
+
+        // ... Resto de funciones
         function unlockInventory(e) { e.preventDefault(); if (document.getElementById('inv-pin').value === db.config.inventoryPin) { inventoryUnlocked = true; renderInventory(document.getElementById('content-area')); showToast("Acceso concedido"); } else { showToast("PIN Incorrecto", "error"); document.getElementById('inv-pin').value=''; document.getElementById('inv-pin').focus(); } }
         function unlockFinance(e) { e.preventDefault(); if (document.getElementById('fin-pin').value === db.config.inventoryPin) { financeUnlocked = true; renderFinance(document.getElementById('content-area')); showToast("Acceso concedido"); } else { showToast("PIN Incorrecto", "error"); document.getElementById('fin-pin').value=''; document.getElementById('fin-pin').focus(); } }
         function unlockDirectory(e) { e.preventDefault(); if (document.getElementById('dir-pin').value === db.config.inventoryPin) { directoryUnlocked = true; renderDirectory(document.getElementById('content-area')); showToast("Acceso concedido"); } else { showToast("PIN Incorrecto", "error"); document.getElementById('dir-pin').value=''; document.getElementById('dir-pin').focus(); } }
         function updatePin(e) { e.preventDefault(); const newPin = document.getElementById('cfg-new-pin').value; if (newPin.length !== 4) return showToast("El PIN debe ser de 4 dígitos", "error"); db.config.inventoryPin = newPin; localStorage.setItem('gympro_config', JSON.stringify(db.config)); showToast("PIN actualizado"); e.target.reset(); }
         function addExpense(e) { e.preventDefault(); const desc = document.getElementById('expense-desc').value; const amount = parseFloat(document.getElementById('expense-amount').value); db.expenses.push({ desc: desc, amount: amount, date: new Date().toISOString() }); saveData(); showToast("Gasto registrado"); e.target.reset(); renderFinance(document.getElementById('content-area')); }
         function addUser(e) { e.preventDefault(); const u = document.getElementById('cfg-user').value; const p = document.getElementById('cfg-pass').value; const r = document.getElementById('cfg-role').value; if (db.users.find(user => user.username === u)) return showToast('El usuario ya existe', 'error'); db.users.push({ username: u, password: p, role: r }); localStorage.setItem('gympro_users', JSON.stringify(db.users)); showToast(`Usuario ${r} creado`); renderConfig(document.getElementById('content-area')); }
-        function deleteUser(username) { if (username === 'usuario' && db.users.length === 1) return showToast('No puedes borrar el último usuario', 'error'); if(confirm('¿Eliminar usuario?')) { db.users = db.users.filter(u => u.username !== username); localStorage.setItem('gympro_users', JSON.stringify(db.users)); renderConfig(document.getElementById('content-area')); } }
+        
         function editDebt(dni) { const student = db.students.find(s => s.dni === dni); if (!student) return; const input = prompt("Ingrese el saldo pendiente (0 para PAGADO):", student.deuda !== undefined ? student.deuda : (student.pagoEstado === 'debe' ? student.monto : 0)); if (input !== null) { const newDebt = parseFloat(input); if (isNaN(newDebt) || newDebt < 0) return showToast("Monto inválido", "error"); student.deuda = newDebt; student.pagoEstado = newDebt === 0 ? 'pagado' : 'debe'; saveData(); showToast("Saldo actualizado"); renderDirectory(document.getElementById('content-area')); } }
         function toggleStudentStatus(dni) { const student = db.students.find(s => s.dni === dni); if(student) { student.pagoEstado = student.pagoEstado === 'pagado' ? 'debe' : 'pagado'; student.deuda = student.pagoEstado === 'pagado' ? 0 : student.monto; saveData(); showToast(`Estado: ${student.pagoEstado.toUpperCase()}`); const activeView = document.querySelector('.nav-btn.active').id; if(activeView === 'nav-directory') renderDirectory(document.getElementById('content-area')); else if(activeView === 'nav-attendance') renderAttendance(document.getElementById('content-area')); } }
         function deleteStudent(dni) { if(confirm('¿Eliminar alumno y su historial?')) { db.students = db.students.filter(s => s.dni !== dni); db.attendanceLogs = db.attendanceLogs.filter(l => l.dni !== dni); saveData(); showToast("Alumno eliminado"); const activeView = document.querySelector('.nav-btn.active').id; if(activeView === 'nav-directory') renderDirectory(document.getElementById('content-area')); else if(activeView === 'nav-attendance') renderAttendance(document.getElementById('content-area')); } }
@@ -463,7 +487,4 @@
         function showToast(msg, type='success') { const c = document.getElementById('toast-container'); const t = document.createElement('div'); t.className = 'toast'; if(type === 'error') t.style.borderLeft = "4px solid #ef4444"; else t.style.borderLeft = "4px solid #22c55e"; t.innerHTML = `<span>${msg}</span>`; c.appendChild(t); setTimeout(() => { t.remove(); }, 3000); }
     </script>
 </body>
-
 </html>
-
-
