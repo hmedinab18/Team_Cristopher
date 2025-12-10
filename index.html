@@ -54,7 +54,7 @@
                     </button>
                 </form>
                 <div class="mt-8 text-center">
-                    <p class="text-xs text-slate-400">Credenciales por defecto: <b>usuario / usuario</b></p>
+                    <p class="text-xs text-slate-400">Credenciales por defecto: <b>Bienvenido</b></p>
                 </div>
             </div>
         </div>
@@ -463,4 +463,5 @@
         function showToast(msg, type='success') { const c = document.getElementById('toast-container'); const t = document.createElement('div'); t.className = 'toast'; if(type === 'error') t.style.borderLeft = "4px solid #ef4444"; else t.style.borderLeft = "4px solid #22c55e"; t.innerHTML = `<span>${msg}</span>`; c.appendChild(t); setTimeout(() => { t.remove(); }, 3000); }
     </script>
 </body>
+
 </html>
