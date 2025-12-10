@@ -21,6 +21,8 @@
         .check-day input { display: none; }
         .check-day div { width: 32px; height: 32px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 2px solid #e2e8f0; color: #94a3b8; }
         .check-day input:checked + div { background-color: #3b82f6; border-color: #3b82f6; color: white; box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.5); }
+        /* Ocultar flechas input number */
+        input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
         /* Toast Notification */
         #toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 100; }
         .toast { background: #1e293b; color: white; padding: 12px 24px; border-radius: 8px; margin-top: 10px; display: flex; align-items: center; gap: 10px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); animation: slideIn 0.3s; }
@@ -29,53 +31,64 @@
 </head>
 <body class="h-screen flex flex-col overflow-hidden text-slate-800">
 
-    <!-- 1. PANTALLA DE INICIO (LOGIN / KIOSCO) -->
-    <div id="landing-screen" class="fixed inset-0 z-50 flex flex-col md:flex-row bg-white">
-        <!-- IZQUIERDA: LOGIN -->
-        <div class="w-full md:w-1/3 flex flex-col justify-center p-10 bg-white border-r border-gray-100 shadow-xl z-10">
-            <div class="max-w-sm mx-auto w-full">
-                <div class="mb-10 text-center md:text-left flex flex-col items-center md:items-start">
-                    <!-- LOGO PRINCIPAL -->
-                    <img src="Logo_TEAM_ Cristopher.png" alt="Team Cristopher" class="h-24 mb-4 object-contain">
-                    <p class="text-slate-500 mt-2">Inicia sesión para gestionar.</p>
-                </div>
+    <!-- 1. PANTALLA DE INICIO (KIOSCO FULL SCREEN) -->
+    <div id="landing-screen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-900 text-white overflow-hidden">
+        
+        <!-- FONDO -->
+        <div class="absolute inset-0 bg-gradient-to-br from-blue-900 to-slate-900 opacity-90 z-0"></div>
+        <div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1571902943202-507ec2618e8f?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80')] bg-cover bg-center mix-blend-overlay opacity-20 z-0"></div>
+
+        <!-- BOTÓN DE INICIO DE SESIÓN -->
+        <button onclick="showLoginModal()" class="absolute top-6 right-6 z-20 bg-white/10 hover:bg-white/20 text-white px-5 py-2 rounded-full backdrop-blur-sm transition text-sm font-medium flex items-center gap-2 border border-white/10">
+            <i class="fas fa-user-lock"></i> Inicio de Sesión
+        </button>
+
+        <!-- CONTENIDO CENTRAL (KIOSCO) -->
+        <div class="relative z-10 max-w-2xl w-full text-center flex flex-col items-center px-4">
+            <!-- LOGO -->
+            <img src="Logo_TEAM_ Cristopher.png" alt="Team Cristopher" class="h-40 mb-6 object-contain drop-shadow-2xl">
+
+            <h1 class="text-4xl md:text-5xl font-bold mb-4 tracking-tight">Bienvenido</h1>
+            <p class="text-slate-300 text-lg mb-10">Ingresa tu documento para registrar tu asistencia.</p>
+
+            <!-- INPUT GRANDE -->
+            <div class="bg-white/10 p-2 rounded-2xl border border-white/20 backdrop-blur-md flex shadow-2xl w-full max-w-md mx-auto transition focus-within:bg-white/20 focus-within:border-white/40 focus-within:scale-105 duration-300">
+                <input type="number" id="quick-dni" class="flex-1 bg-transparent border-none text-white text-3xl px-6 py-4 placeholder-slate-400/70 outline-none text-center font-mono" placeholder="N° DOCUMENTO" autocomplete="off" onkeypress="if(event.key === 'Enter') quickAttendance()">
+                <button onclick="quickAttendance()" class="bg-blue-600 hover:bg-blue-500 text-white px-8 rounded-xl font-bold transition shadow-lg">ENTRAR</button>
+            </div>
+
+            <!-- RESULTADO -->
+            <div id="quick-result" class="mt-8 h-24 w-full max-w-md mx-auto transition-all flex items-center justify-center"></div>
+        </div>
+
+        <!-- MODAL DE LOGIN (OCULTO) -->
+        <div id="login-modal" class="absolute inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm hidden fade-in">
+            <div class="bg-white text-slate-800 p-8 rounded-2xl shadow-2xl max-w-sm w-full relative mx-4 transform scale-100 transition-all">
+                <button onclick="hideLoginModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition p-2">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
                 
-                <form onsubmit="handleLogin(event)" class="space-y-5">
+                <div class="text-center mb-8">
+                    <div class="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4 text-blue-600 ring-4 ring-blue-50">
+                        <i class="fas fa-shield-alt text-2xl"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-slate-800">Acceso Administrativo</h3>
+                    <p class="text-slate-500 text-sm mt-1">Solo personal autorizado</p>
+                </div>
+
+                <form onsubmit="handleLogin(event)" class="space-y-4">
                     <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Usuario</label>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1 ml-1">Usuario</label>
                         <input type="text" id="username" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition" placeholder="usuario">
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Contraseña</label>
-                        <input type="password" id="password" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition" placeholder="usuario">
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1 ml-1">Contraseña</label>
+                        <input type="password" id="password" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition" placeholder="••••••">
                     </div>
-                    <button type="submit" class="w-full bg-slate-900 text-white font-bold py-4 rounded-lg hover:bg-slate-800 transition transform active:scale-[0.98]">
-                        INGRESAR
+                    <button type="submit" class="w-full bg-slate-900 text-white font-bold py-3.5 rounded-lg hover:bg-slate-800 transition transform active:scale-[0.98] shadow-lg mt-2">
+                        INGRESAR AL SISTEMA
                     </button>
                 </form>
-                <div class="mt-8 text-center">
-                    <p class="text-xs text-slate-400">Credenciales por defecto: <b>usuario / usuario</b></p>
-                </div>
-            </div>
-        </div>
-
-        <!-- DERECHA: REGISTRO ASISTENCIA RÁPIDO (KIOSCO) -->
-        <div class="w-full md:w-2/3 bg-slate-900 relative flex flex-col items-center justify-center p-8 text-white overflow-hidden">
-            <div class="absolute inset-0 bg-gradient-to-br from-blue-900 to-slate-900 opacity-90"></div>
-            <div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1571902943202-507ec2618e8f?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80')] bg-cover bg-center mix-blend-overlay opacity-20"></div>
-
-            <div class="relative z-10 max-w-2xl w-full text-center flex flex-col items-center">
-                <!-- LOGO EN KIOSCO -->
-                <img src="Logo_TEAM_ Cristopher.png" alt="Team Cristopher" class="h-40 mb-8 object-contain drop-shadow-lg">
-
-                <p class="text-slate-300 text-lg mb-8">Ingresa tu documento para registrar tu ingreso ahora.</p>
-
-                <div class="bg-white/5 p-2 rounded-2xl border border-white/10 backdrop-blur-md flex shadow-2xl w-full max-w-md mx-auto">
-                    <input type="number" id="quick-dni" class="flex-1 bg-transparent border-none text-white text-2xl px-6 py-4 placeholder-slate-500 outline-none text-center font-mono" placeholder="N° DOCUMENTO" autocomplete="off" onkeypress="if(event.key === 'Enter') quickAttendance()">
-                    <button onclick="quickAttendance()" class="bg-blue-600 hover:bg-blue-500 text-white px-8 rounded-xl font-bold transition">MARCAR</button>
-                </div>
-
-                <div id="quick-result" class="mt-8 h-24 transition-all flex flex-col items-center justify-center w-full max-w-md mx-auto"></div>
             </div>
         </div>
     </div>
@@ -167,14 +180,17 @@
         }
 
         let API_TOKEN = localStorage.getItem('gympro_token') || "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6Im1vYmlsZW5ldGZpamFAZ21haWwuY29tIn0.p96PEX6kNXdguiZk1jpodcUHgUaXRwLi3DzsGzkxsBY";
-        
+        const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+
+        function getMonthName(dateStr) {
+            if(!dateStr) return '-';
+            const d = new Date(dateStr + 'T12:00:00'); 
+            return monthNames[d.getMonth()];
+        }
+
         // --- 2. INICIALIZACIÓN DE DATOS ---
         
-        // Usuarios - LÓGICA MODIFICADA PARA NO RECREAR SIEMPRE
         let existingUsers = safeParse('gympro_users', []);
-        
-        // Solo crear usuario por defecto si la lista está VACÍA.
-        // Si borras el usuario "usuario" pero tienes otro admin, no se volverá a crear.
         if (existingUsers.length === 0) {
             const defaultUser = { username: 'usuario', password: 'usuario', role: 'admin' };
             existingUsers.push(defaultUser);
@@ -223,7 +239,7 @@
             students: safeParse('gympro_students', []),
             sales: safeParse('gympro_sales', []),
             attendanceLogs: safeParse('gympro_logs', []),
-            users: safeParse('gympro_users', []), // Se carga lo que hay en localStorage (sin forzar usuario default si no está vacío)
+            users: safeParse('gympro_users', []),
             products: rawProducts,
             plans: existingPlans,
             expenses: safeParse('gympro_expenses', []),
@@ -239,6 +255,17 @@
         let dirFilterMonth = (new Date().getMonth() + 1).toString().padStart(2, '0');
 
         // --- 3. LÓGICA DE NAVEGACIÓN Y AUTH ---
+        function showLoginModal() {
+            document.getElementById('login-modal').classList.remove('hidden');
+            setTimeout(() => document.getElementById('username').focus(), 100);
+        }
+
+        function hideLoginModal() {
+            document.getElementById('login-modal').classList.add('hidden');
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
+        }
+
         function handleLogin(e) {
             e.preventDefault();
             const u = document.getElementById('username').value;
@@ -247,14 +274,20 @@
             if (user) {
                 currentUser = user;
                 if(!currentUser.role) currentUser.role = 'vendedor'; 
+                
                 document.getElementById('current-user-display').innerText = `Usuario: ${user.username}`;
                 document.getElementById('current-role-display').innerText = user.role.toUpperCase();
+                
                 const adminMenu = document.getElementById('admin-menu-section');
                 if (user.role === 'admin') adminMenu.classList.remove('hidden'); else adminMenu.classList.add('hidden');
+                
                 document.getElementById('landing-screen').classList.add('hidden');
                 document.getElementById('app-layout').classList.remove('hidden');
                 navigate('attendance'); 
-            } else { showToast('Usuario o contraseña incorrectos', 'error'); }
+                hideLoginModal(); 
+            } else { 
+                showToast('Usuario o contraseña incorrectos', 'error'); 
+            }
         }
 
         function logout() {
@@ -262,13 +295,12 @@
             inventoryUnlocked = false; financeUnlocked = false; directoryUnlocked = false;
             document.getElementById('app-layout').classList.add('hidden');
             document.getElementById('landing-screen').classList.remove('hidden');
-            document.getElementById('username').value = ''; document.getElementById('password').value = '';
+            hideLoginModal();
         }
 
         function navigate(view) {
             if (view === 'config' && (!currentUser || currentUser.role !== 'admin')) return showToast('Acceso denegado: Solo administradores', 'error');
             
-            // Reset bloqueos al cambiar de pestaña
             inventoryUnlocked = false; financeUnlocked = false; directoryUnlocked = false;
 
             document.querySelectorAll('.nav-btn').forEach(b => {
@@ -328,7 +360,8 @@
         }
 
         function renderStudents(c) {
-            const opts = db.plans.map(p => `<option value="${p.id}" data-price="${p.price}" data-name="${p.name}" data-personalized="${p.personalized}">${p.name} - S/ ${p.price}</option>`).join('');
+            const opts = db.plans.map(p => `<option value="${p.id}" data-name="${p.name}" data-personalized="${p.personalized}">${p.name} - S/ ${p.price}</option>`).join('');
+            
             c.innerHTML = `<div class="fade-in max-w-6xl mx-auto space-y-8"><h2 class="text-2xl font-bold text-slate-800">Registro de Alumnos</h2><div class="bg-white p-8 rounded-xl shadow-sm border border-slate-200"><div class="border-b border-slate-100 pb-4 mb-6"><h3 class="text-lg font-bold text-blue-600">Nuevo Ingreso</h3></div><form onsubmit="registerStudent(event)" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"><div class="flex gap-2 items-end lg:col-span-1"><div class="w-1/3"><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Tipo</label><select id="reg-doc-type" class="w-full border p-3 rounded text-sm outline-none" onchange="toggleApiButton()"><option value="DNI">DNI</option><option value="C.E.">C.E.</option></select></div><div class="w-2/3 relative"><label class="block text-xs font-bold text-slate-500 uppercase mb-1">N° Documento</label><div class="flex"><input type="text" id="reg-dni" class="w-full border p-3 rounded-l text-sm outline-none" required><button type="button" id="btn-api-search" onclick="searchDNI()" class="bg-blue-600 text-white px-3 rounded-r"><i class="fas fa-search"></i></button></div></div></div><div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Nombres</label><input type="text" id="reg-nombres" class="w-full border p-3 rounded bg-white text-sm" readonly></div><div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Apellidos</label><input type="text" id="reg-apellidos" class="w-full border p-3 rounded bg-white text-sm" readonly></div><div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Teléfono</label><input type="tel" id="reg-telefono" class="w-full border p-3 rounded text-sm"></div><div class="lg:col-span-2"><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Dirección</label><input type="text" id="reg-direccion" class="w-full border p-3 rounded text-sm"></div><div class="lg:col-span-3 border-t border-slate-100 my-2"></div><div class="lg:col-span-1"><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Seleccionar Plan</label><select id="reg-plan" class="w-full border p-3 rounded bg-blue-50 text-sm font-bold text-blue-900 outline-none" onchange="updatePlanDetails()" required><option value="">-- Elige un Plan --</option>${opts}</select></div><input type="hidden" id="reg-tipo-nombre"><div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Personalizado</label><select id="reg-personalizado" class="w-full border p-3 rounded bg-slate-100 text-sm pointer-events-none" tabindex="-1"><option value="false">No</option><option value="true">Sí</option></select></div><div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Inicio</label><input type="date" id="reg-inicio" class="w-full border p-3 rounded text-sm" required></div><div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Fin</label><input type="date" id="reg-fin" class="w-full border p-3 rounded text-sm" required></div><div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Monto (S/)</label><input type="number" id="reg-monto" step="0.5" class="w-full border p-3 rounded text-sm" required></div><div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Estado Pago</label><select id="reg-estado-pago" class="w-full border p-3 rounded bg-white text-sm font-bold"><option value="pagado">✅ Pagado</option><option value="debe" class="text-red-600">❌ Pendiente</option></select></div><div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Tipo de Pago</label><select id="reg-tipo-pago" class="w-full border p-3 rounded bg-white text-sm"><option value="EFECTIVO">Efectivo</option><option value="YAPE">Yape</option><option value="PLIN">Plin</option><option value="TRANSFERENCIA">Transferencia</option></select></div><div class="lg:col-span-3 mt-2"><button type="submit" class="w-full bg-green-600 text-white font-bold py-4 rounded-lg hover:bg-green-700 transition">GUARDAR ALUMNO</button></div></form></div></div>`;
             setTimeout(() => document.getElementById('reg-inicio').value = new Date().toISOString().split('T')[0], 100);
         }
@@ -344,13 +377,13 @@
             const rows = filtered.map(s => {
                 const isPaid = s.pagoEstado === 'pagado';
                 const deuda = s.deuda !== undefined ? s.deuda : (isPaid ? 0 : s.monto);
-                return `<tr class="border-b border-slate-100 hover:bg-slate-50"><td class="p-3 text-sm font-mono text-slate-600">${s.dni}</td><td class="p-3 text-sm font-bold text-slate-800">${s.nombre} ${s.apellidos}</td><td class="p-3 text-sm">${s.tipoClase}</td><td class="p-3 text-sm text-slate-500">${formatDate(s.fechaFin)}</td><td class="p-3 text-sm font-bold text-slate-700">S/ ${s.monto.toFixed(2)} ${deuda>0?`<div class="text-xs text-red-500 font-bold mt-1">Saldo: S/ ${deuda.toFixed(2)}</div>`:''}</td><td class="p-3 text-sm font-bold text-slate-600">${s.tipoPago||'-'}</td><td class="p-3 text-sm"><span class="flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold border w-fit ${isPaid?'bg-green-100 text-green-700 border-green-200':'bg-red-100 text-red-700 border-red-200'}"><i class="fas ${isPaid?'fa-check':'fa-times'}"></i> ${isPaid?'PAGADO':'DEBE'}</span></td><td class="p-3 text-sm flex gap-2"><button onclick="editDebt('${s.dni}')" class="text-blue-500 hover:text-blue-700 bg-blue-50 p-2 rounded-full"><i class="fas fa-money-bill-wave"></i></button><button onclick="toggleStudentStatus('${s.dni}')" class="text-orange-400 hover:text-orange-600 bg-orange-50 p-2 rounded-full"><i class="fas fa-sync-alt"></i></button><button onclick="deleteStudent('${s.dni}')" class="text-red-400 hover:text-red-600 bg-red-50 p-2 rounded-full"><i class="fas fa-trash-alt"></i></button></td></tr>`;
+                return `<tr class="border-b border-slate-100 hover:bg-slate-50"><td class="p-3 text-sm font-mono text-slate-600">${s.dni}</td><td class="p-3 text-sm font-bold text-slate-800">${s.nombre} ${s.apellidos}</td><td class="p-3 text-sm">${s.tipoClase}</td><td class="p-3 text-sm text-slate-500">${formatDate(s.fechaFin)}</td><td class="p-3 text-sm font-bold text-slate-700">S/ ${s.monto.toFixed(2)} ${deuda>0?`<div class="text-xs text-red-500 font-bold mt-1">Saldo: S/ ${deuda.toFixed(2)}</div>`:''}</td><td class="p-3 text-sm font-bold text-slate-600">${s.tipoPago||'-'}</td><td class="p-3 text-sm"><select onchange="updateStudentStatus('${s.dni}', this.value)" class="border rounded px-2 py-1 text-xs font-bold ${isPaid ? 'text-green-700 border-green-200 bg-green-50' : 'text-red-700 border-red-200 bg-red-50'}"><option value="pagado" ${isPaid ? 'selected' : ''}>PAGADO</option><option value="debe" ${!isPaid ? 'selected' : ''}>DEBE</option></select></td><td class="p-3 text-sm"><select onchange="handleAction(this, '${s.dni}')" class="border rounded px-2 py-1 text-xs text-slate-600 bg-slate-50 hover:bg-slate-100 transition cursor-pointer outline-none"><option value="">Opciones...</option><option value="edit_debt">Editar Saldo</option><option value="delete">Eliminar</option></select></td></tr>`;
             }).join('');
 
             const years = `<option value="all" ${dirFilterYear==='all'?'selected':''}>Todos</option><option value="${new Date().getFullYear()}" ${dirFilterYear===new Date().getFullYear().toString()?'selected':''}>${new Date().getFullYear()}</option><option value="${new Date().getFullYear()-1}" ${dirFilterYear===(new Date().getFullYear()-1).toString()?'selected':''}>${new Date().getFullYear()-1}</option>`;
             const months = [{v:'01',t:'Ene'},{v:'02',t:'Feb'},{v:'03',t:'Mar'},{v:'04',t:'Abr'},{v:'05',t:'May'},{v:'06',t:'Jun'},{v:'07',t:'Jul'},{v:'08',t:'Ago'},{v:'09',t:'Sep'},{v:'10',t:'Oct'},{v:'11',t:'Nov'},{v:'12',t:'Dic'}].map(m=>`<option value="${m.v}" ${dirFilterMonth===m.v?'selected':''}>${m.t}</option>`).join('');
 
-            c.innerHTML = `<div class="fade-in max-w-7xl mx-auto space-y-6"><div class="flex justify-between items-center mb-2"><div class="flex items-center gap-3"><h2 class="text-2xl font-bold text-slate-800">Directorio de Alumnos</h2><span class="bg-slate-100 text-slate-700 text-xs px-2 py-1 rounded font-bold border border-slate-200"><i class="fas fa-lock-open mr-1"></i>DESBLOQUEADO</span></div><button onclick="downloadDirectory()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded text-xs font-bold flex items-center gap-2"><i class="fas fa-download"></i> Descargar TXT</button></div><div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-wrap gap-4 items-center"><div class="flex items-center gap-2"><i class="fas fa-filter text-slate-400"></i><span class="text-sm font-bold text-slate-600">Filtrar por:</span></div><select id="dir-filter-year" onchange="updateDirFilters()" class="border p-2 rounded text-sm bg-slate-50 outline-none">${years}</select><select id="dir-filter-month" onchange="updateDirFilters()" class="border p-2 rounded text-sm bg-slate-50 outline-none"><option value="all">Todos los Meses</option>${months}</select><div class="ml-auto text-xs text-slate-500">Mostrando: <b>${filtered.length}</b> alumnos</div></div><div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden"><div class="overflow-x-auto max-h-[600px]"><table class="w-full text-left"><thead class="bg-white text-xs uppercase text-slate-500 sticky top-0 shadow-sm z-10"><tr><th class="p-3">Doc</th><th class="p-3">Nombre Completo</th><th class="p-3">Plan</th><th class="p-3">Vence</th><th class="p-3">Monto</th><th class="p-3">Tipo Pago</th><th class="p-3">Estado Pago</th><th class="p-3">Acciones</th></tr></thead><tbody>${rows || '<tr><td colspan="8" class="p-8 text-center text-slate-400">Sin resultados.</td></tr>'}</tbody></table></div></div></div>`;
+            c.innerHTML = `<div class="fade-in max-w-7xl mx-auto space-y-6"><div class="flex justify-between items-center mb-2"><div class="flex items-center gap-3"><h2 class="text-2xl font-bold text-slate-800">Directorio de Alumnos</h2><span class="bg-slate-100 text-slate-700 text-xs px-2 py-1 rounded font-bold border border-slate-200"><i class="fas fa-lock-open mr-1"></i>DESBLOQUEADO</span></div><button onclick="downloadDirectory()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded text-xs font-bold flex items-center gap-2"><i class="fas fa-download"></i> Descargar TXT</button></div><div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-wrap gap-4 items-center"><div class="flex items-center gap-2"><i class="fas fa-filter text-slate-400"></i><span class="text-sm font-bold text-slate-600">Filtrar por:</span></div><select id="dir-filter-year" onchange="updateDirFilters()" class="border p-2 rounded text-sm bg-slate-50 outline-none">${years}</select><select id="dir-filter-month" onchange="updateDirFilters()" class="border p-2 rounded text-sm bg-slate-50 outline-none"><option value="all">Todos los Meses</option>${months}</select><div class="ml-auto text-xs text-slate-500">Mostrando: <b>${filtered.length}</b> alumnos</div></div><div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden"><div class="overflow-x-auto max-h-[600px]"><table class="w-full text-left"><thead class="bg-white text-xs uppercase text-slate-500 sticky top-0 shadow-sm z-10"><tr><th class="p-3">Doc</th><th class="p-3">Nombre Completo</th><th class="p-3">F. Ingreso</th><th class="p-3">Mes</th><th class="p-3">Plan</th><th class="p-3">Vence</th><th class="p-3">Monto/Deuda</th><th class="p-3">Estado</th><th class="p-3">Acciones</th></tr></thead><tbody>${rows || '<tr><td colspan="9" class="p-8 text-center text-slate-400">Sin resultados.</td></tr>'}</tbody></table></div></div></div>`;
         }
 
         function renderFinance(c) {
@@ -358,18 +391,38 @@
             
             const txs = [...db.sales.map(s=>({d:s.fecha,t:'Venta',de:s.producto,m:s.monto,e:false})), ...db.students.map(s=>({d:s.registro,t:'Inscripción',de:`${s.nombre} - ${s.tipoClase}`,m:s.monto,e:false})), ...db.expenses.map(e=>({d:e.date,t:'Gasto',de:e.desc,m:e.amount,e:true}))];
             const rows = txs.sort((a,b)=>new Date(b.d)-new Date(a.d)).map(t=>`<tr class="border-b hover:bg-slate-50 text-sm"><td class="p-3 text-slate-500">${new Date(t.d).toLocaleDateString()}</td><td class="p-3"><span class="px-2 py-1 rounded text-xs font-bold ${t.e?'bg-red-100 text-red-600':'bg-green-100 text-green-600'}">${t.t.toUpperCase()}</span></td><td class="p-3">${t.de}</td><td class="p-3 text-right font-bold ${t.e?'text-red-600':'text-green-600'}">${t.e?'-':'+'}S/ ${t.m.toFixed(2)}</td></tr>`).join('');
-            c.innerHTML = `<div class="fade-in max-w-5xl mx-auto space-y-6"><div class="flex items-center gap-3"><h2 class="text-2xl font-bold text-slate-800">Reporte Financiero</h2><span class="bg-blue-100 text-blue-700 text-xs px-2 py-1 rounded font-bold border border-blue-200"><i class="fas fa-lock-open mr-1"></i>DESBLOQUEADO</span></div><div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden"><table class="w-full text-left"><thead><tr class="bg-slate-50 text-xs uppercase font-bold text-slate-500"><th class="p-3">Fecha</th><th class="p-3">Tipo</th><th class="p-3">Desc.</th><th class="p-3 text-right">Monto</th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
+            c.innerHTML = `<div class="fade-in max-w-5xl mx-auto space-y-6"><div class="flex items-center gap-3"><h2 class="text-2xl font-bold text-slate-800">Reporte Financiero</h2><span class="bg-blue-100 text-blue-700 text-xs px-2 py-1 rounded font-bold border border-blue-200"><i class="fas fa-lock-open mr-1"></i>DESBLOQUEADO</span></div><div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden"><table class="w-full text-left"><thead><tr class="bg-slate-50 text-xs uppercase font-bold text-slate-500"><th class="p-3">Fecha</th><th class="p-3">Tipo</th><th class="p-3">Desc.</th><th class="p-3">Text-right">Monto</th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
         }
 
-        // 7. CONFIGURACIÓN (SIN GESTION DE PLANES)
+        // 7. CONFIGURACIÓN (SIN GESTION DE PLANES Y SIN LOGO DE PLANS)
         function renderConfig(container) {
             const isAdmin = currentUser && currentUser.role === 'admin';
             if (!isAdmin) return container.innerHTML = `<div class="flex flex-col items-center justify-center h-96 text-center"><div class="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mb-6 text-slate-400"><i class="fas fa-user-shield text-4xl"></i></div><h3 class="text-xl font-bold text-slate-800 mb-2">Acceso Restringido</h3><p class="text-slate-500 max-w-sm mx-auto">Solo los usuarios con rol de <b>Administrador</b> pueden acceder.</p></div>`;
 
             const users = db.users.map(u => `<li class="flex justify-between items-center p-3 bg-slate-50 rounded border border-slate-100"><div class="flex flex-col"><span class="font-bold text-slate-700 text-sm"><i class="fas fa-user text-slate-400 mr-2"></i>${u.username}</span><span class="text-[10px] uppercase text-blue-500 font-bold ml-6">${u.role}</span></div><button onclick="deleteUser('${u.username}')" class="text-red-400 hover:text-red-600"><i class="fas fa-trash"></i></button></li>`).join('');
             
+            // Re-added Plan Management Section
+            const plansList = db.plans.map(p => `
+                <li class="flex justify-between items-center p-3 bg-slate-50 rounded border border-slate-100">
+                    <div>
+                        <div class="font-bold text-slate-800">${p.name}</div>
+                        <div class="text-xs text-slate-500">${p.personalized?'Pers.':'Normal'} - S/ ${p.price.toFixed(2)}</div>
+                    </div>
+                    <div class="flex gap-2">
+                        <button type="button" onclick="editPlanPrice('${p.id}')" class="text-blue-400 hover:text-blue-600"><i class="fas fa-edit"></i></button>
+                        <button type="button" onclick="deletePlan('${p.id}')" class="text-red-400 hover:text-red-600"><i class="fas fa-trash"></i></button>
+                    </div>
+                </li>`).join('');
+
             container.innerHTML = `
                 <div class="fade-in max-w-5xl mx-auto space-y-8"><div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- GESTIÓN DE PLANES -->
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                        <h2 class="text-xl font-bold text-slate-800 mb-4 border-b pb-2"><i class="fas fa-tags mr-2 text-purple-600"></i>Gestión de Planes</h2>
+                        <form onsubmit="addPlan(event)" class="mb-6 space-y-3"><div class="flex gap-2"><input type="text" id="plan-name" class="flex-[2] border p-2 rounded text-sm" placeholder="Nombre Plan" required><input type="number" id="plan-price" class="flex-1 border p-2 rounded text-sm" placeholder="Precio" required></div><div class="flex gap-2 items-center"><label class="flex items-center gap-2 text-sm text-slate-600 cursor-pointer bg-slate-50 px-3 py-2 rounded border border-slate-200 flex-1"><input type="checkbox" id="plan-pers"> Es Personalizado</label><button class="bg-purple-600 text-white px-4 py-2 rounded text-sm font-bold hover:bg-purple-700">Agregar</button></div></form>
+                        <ul class="space-y-2 max-h-60 overflow-y-auto">${plansList}</ul>
+                    </div>
+
                     <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
                         <h2 class="text-xl font-bold text-slate-800 mb-4 border-b pb-2"><i class="fas fa-users-cog mr-2 text-blue-600"></i>Usuarios</h2>
                         <form onsubmit="addUser(event)" class="mb-6 space-y-3"><div class="flex gap-2"><input type="text" id="cfg-user" class="flex-1 border p-2 rounded text-sm" placeholder="Usuario" required><input type="text" id="cfg-pass" class="flex-1 border p-2 rounded text-sm" placeholder="Clave" required></div><div class="flex gap-2"><select id="cfg-role" class="flex-1 border p-2 rounded text-sm bg-slate-50"><option value="admin">Admin</option><option value="gestor">Gestor</option><option value="vendedor">Vendedor</option></select><button class="bg-blue-600 text-white px-6 py-2 rounded text-sm font-bold hover:bg-blue-700">Crear</button></div></form>
@@ -384,6 +437,51 @@
         }
 
         // --- FUNCIONES LOGICAS ---
+        function addPlan(e) {
+            e.preventDefault();
+            const name = document.getElementById('plan-name').value;
+            const price = parseFloat(document.getElementById('plan-price').value);
+            const personalized = document.getElementById('plan-pers').checked;
+            db.plans.push({ id: Date.now(), name, price, personalized });
+            localStorage.setItem('gympro_plans', JSON.stringify(db.plans));
+            showToast("Plan agregado");
+            renderConfig(document.getElementById('content-area'));
+        }
+
+        function deletePlan(id) {
+            if(confirm('¿Eliminar plan?')) {
+                db.plans = db.plans.filter(p => p.id != id);
+                localStorage.setItem('gympro_plans', JSON.stringify(db.plans));
+                renderConfig(document.getElementById('content-area'));
+                showToast("Plan eliminado");
+            }
+        }
+
+        function editPlanPrice(id) {
+            const plan = db.plans.find(p => p.id == id);
+            if (!plan) return showToast("Error: Plan no encontrado", "error");
+
+            // Edit Name
+            const newName = prompt("Editar Nombre del Plan:", plan.name);
+            if (newName === null) return; // Cancelled
+            if (newName.trim() === "") return showToast("El nombre no puede estar vacío", "error");
+
+            // Edit Price
+            const newPrice = prompt(`Editar Precio para "${newName}":`, plan.price);
+            if (newPrice === null) return; // Cancelled
+            
+            const priceValue = parseFloat(newPrice);
+            if (isNaN(priceValue) || priceValue < 0) return showToast("Precio inválido", "error");
+
+            // Update
+            plan.name = newName.trim();
+            plan.price = priceValue;
+            
+            localStorage.setItem('gympro_plans', JSON.stringify(db.plans));
+            showToast("Plan actualizado correctamente");
+            renderConfig(document.getElementById('content-area'));
+        }
+
         function downloadDirectory() {
             const filtered = db.students.filter(s => {
                 const d = new Date(s.fechaInicio||s.registro);
@@ -391,11 +489,11 @@
             });
             if (filtered.length === 0) return showToast("No hay datos para exportar", "error");
 
-            let content = "DNI;Nombres;Apellidos;Telefono;Direccion;Plan;Personalizado;Inicio;Fin;Monto Total;Deuda;Estado;Tipo Pago\n";
+            let content = "DNI;Nombres;Apellidos;Telefono;Direccion;Plan;Personalizado;Fecha Ingreso;Mes Ingreso;Fin;Monto Total;Deuda;Estado;Tipo Pago\n";
             filtered.forEach(s => {
                 const isPaid = s.pagoEstado === 'pagado';
                 const deuda = s.deuda !== undefined ? s.deuda : (isPaid ? 0 : s.monto);
-                content += `${s.dni};${s.nombre};${s.apellidos};${s.telefono || ''};${s.direccion || ''};${s.tipoClase};${s.personalizado ? 'SI' : 'NO'};${formatDate(s.fechaInicio)};${formatDate(s.fechaFin)};${s.monto.toFixed(2)};${deuda.toFixed(2)};${s.pagoEstado.toUpperCase()};${s.tipoPago || ''}\n`;
+                content += `${s.dni};${s.nombre};${s.apellidos};${s.telefono || ''};${s.direccion || ''};${s.tipoClase};${s.personalizado ? 'SI' : 'NO'};${formatDate(s.fechaInicio)};${getMonthName(s.fechaInicio)};${formatDate(s.fechaFin)};${s.monto.toFixed(2)};${deuda.toFixed(2)};${s.pagoEstado.toUpperCase()};${s.tipoPago || ''}\n`;
             });
 
             const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
@@ -416,7 +514,7 @@
             
             if(!productId) return showToast("Seleccione un producto", "error");
             
-            const product = db.products.find(p => p.id == productId); // FIX: loose comparison
+            const product = db.products.find(p => p.id == productId); 
             
             if(!product) return showToast("Error: Producto no encontrado", "error");
             if(product.stock <= 0) return showToast("¡Producto sin stock!", "error");
@@ -432,7 +530,7 @@
 
         function deleteProduct(id) {
             if(confirm('¿Eliminar producto?')) {
-                db.products = db.products.filter(p => p.id != id); // FIX: loose comparison
+                db.products = db.products.filter(p => p.id != id); 
                 saveData();
                 const activeView = document.querySelector('.nav-btn.active').id;
                 if(activeView === 'nav-inventory') renderInventory(document.getElementById('content-area'));
@@ -440,16 +538,12 @@
         }
 
         function deleteUser(username) {
-            // Protección: No borrar el único usuario que queda
             if (db.users.length <= 1) return showToast('No puedes borrar el único usuario del sistema', 'error');
 
             if(confirm(`¿Estás seguro de eliminar al usuario ${username}?`)) {
-                // Eliminar usuario
                 db.users = db.users.filter(u => u.username !== username);
-                // Guardar cambios
                 localStorage.setItem('gympro_users', JSON.stringify(db.users));
                 
-                // Si me borré a mí mismo, salir
                 if (currentUser && currentUser.username === username) {
                     alert("Has eliminado tu propio usuario. Cerrando sesión.");
                     logout();
@@ -458,6 +552,37 @@
                     renderConfig(document.getElementById('content-area'));
                 }
             }
+        }
+
+        // --- NEW DROPDOWN HANDLERS (FIX: Updated logic for manual amount handling) ---
+        function updateStudentStatus(dni, newStatus) {
+            const student = db.students.find(s => s.dni === dni);
+            if(student) {
+                student.pagoEstado = newStatus;
+                // If marked as paid, debt is 0. If marked as debt, debt resets to full amount
+                if (newStatus === 'pagado') {
+                    student.deuda = 0;
+                } else {
+                    student.deuda = student.monto;
+                }
+                saveData();
+                showToast(`Estado actualizado: ${newStatus.toUpperCase()}`);
+                renderDirectory(document.getElementById('content-area'));
+            }
+        }
+
+        function handleAction(selectElement, dni) {
+            const action = selectElement.value;
+            if (!action) return;
+
+            if (action === 'edit_debt') {
+                editDebt(dni);
+            } else if (action === 'delete') {
+                deleteStudent(dni);
+            }
+
+            // Reset select to default option
+            selectElement.value = "";
         }
 
         // ... Resto de funciones
@@ -470,13 +595,25 @@
         
         function editDebt(dni) { const student = db.students.find(s => s.dni === dni); if (!student) return; const input = prompt("Ingrese el saldo pendiente (0 para PAGADO):", student.deuda !== undefined ? student.deuda : (student.pagoEstado === 'debe' ? student.monto : 0)); if (input !== null) { const newDebt = parseFloat(input); if (isNaN(newDebt) || newDebt < 0) return showToast("Monto inválido", "error"); student.deuda = newDebt; student.pagoEstado = newDebt === 0 ? 'pagado' : 'debe'; saveData(); showToast("Saldo actualizado"); renderDirectory(document.getElementById('content-area')); } }
         function toggleStudentStatus(dni) { const student = db.students.find(s => s.dni === dni); if(student) { student.pagoEstado = student.pagoEstado === 'pagado' ? 'debe' : 'pagado'; student.deuda = student.pagoEstado === 'pagado' ? 0 : student.monto; saveData(); showToast(`Estado: ${student.pagoEstado.toUpperCase()}`); const activeView = document.querySelector('.nav-btn.active').id; if(activeView === 'nav-directory') renderDirectory(document.getElementById('content-area')); else if(activeView === 'nav-attendance') renderAttendance(document.getElementById('content-area')); } }
-        function deleteStudent(dni) { if(confirm('¿Eliminar alumno y su historial?')) { db.students = db.students.filter(s => s.dni !== dni); db.attendanceLogs = db.attendanceLogs.filter(l => l.dni !== dni); saveData(); showToast("Alumno eliminado"); const activeView = document.querySelector('.nav-btn.active').id; if(activeView === 'nav-directory') renderDirectory(document.getElementById('content-area')); else if(activeView === 'nav-attendance') renderAttendance(document.getElementById('content-area')); } }
+        function deleteStudent(dni) { if(confirm('¿Estás seguro de eliminar a este alumno y todo su historial?')) { db.students = db.students.filter(s => s.dni !== dni); db.attendanceLogs = db.attendanceLogs.filter(l => l.dni !== dni); saveData(); showToast("Alumno eliminado correctamente"); const activeView = document.querySelector('.nav-btn.active').id; if(activeView === 'nav-directory') renderDirectory(document.getElementById('content-area')); else if(activeView === 'nav-attendance') renderAttendance(document.getElementById('content-area')); } }
         function updateDirFilters() { dirFilterYear = document.getElementById('dir-filter-year').value; dirFilterMonth = document.getElementById('dir-filter-month').value; renderDirectory(document.getElementById('content-area')); }
         function addProduct(e) { e.preventDefault(); const n = document.getElementById('inv-name') ? document.getElementById('inv-name').value : ''; const c = document.getElementById('inv-cost') ? parseFloat(document.getElementById('inv-cost').value) : 0; const p = parseFloat(document.getElementById('inv-price') ? document.getElementById('inv-price').value : 0); const s = document.getElementById('inv-stock') ? parseInt(document.getElementById('inv-stock').value) : 0; const newProd = { id: Date.now(), name: n, cost: c, price: p, stock: s }; db.products.push(newProd); saveData(); showToast('Producto agregado'); const activeView = document.querySelector('.nav-btn.active').id; if(activeView === 'nav-inventory') renderInventory(document.getElementById('content-area')); if(e.target) e.target.reset(); }
         function updateSalePrice() { const select = document.getElementById('sale-product'); const priceInput = document.getElementById('sale-amount'); const selectedOption = select.options[select.selectedIndex]; if (selectedOption.value) priceInput.value = parseFloat(selectedOption.dataset.price).toFixed(2); else priceInput.value = ''; }
         function toggleApiButton() { const type = document.getElementById('reg-doc-type').value; const btn = document.getElementById('btn-api-search'); if (type === 'C.E.') { btn.disabled = true; btn.classList.add('opacity-50', 'cursor-not-allowed'); document.getElementById('reg-nombres').readOnly = false; document.getElementById('reg-apellidos').readOnly = false; } else { btn.disabled = false; btn.classList.remove('opacity-50', 'cursor-not-allowed'); document.getElementById('reg-nombres').readOnly = true; document.getElementById('reg-apellidos').readOnly = true; } }
         async function searchDNI() { const dni = document.getElementById('reg-dni').value; const type = document.getElementById('reg-doc-type').value; if (type !== 'DNI') return showToast("La búsqueda API solo funciona con DNI", "error"); if(dni.length !== 8) return showToast("DNI debe tener 8 dígitos", "error"); const btn = document.getElementById('btn-api-search'); btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'; btn.disabled = true; try { const res = await fetch(`https://dniruc.apisperu.com/api/v1/dni/${dni}?token=${API_TOKEN}`); const data = await res.json(); if(data.success === false) throw new Error(); document.getElementById('reg-nombres').value = data.nombres; document.getElementById('reg-apellidos').value = `${data.apellidoPaterno} ${data.apellidoMaterno}`; showToast("Datos encontrados"); } catch(e) { showToast("No encontrado. Ingrese manual.", "error"); document.getElementById('reg-nombres').readOnly = false; document.getElementById('reg-apellidos').readOnly = false; } finally { btn.innerHTML = '<i class="fas fa-search"></i>'; btn.disabled = false; } }
-        function updatePlanDetails() { const select = document.getElementById('reg-plan'); const selectedOption = select.options[select.selectedIndex]; if (selectedOption.value) { document.getElementById('reg-monto').value = parseFloat(selectedOption.dataset.price).toFixed(2); document.getElementById('reg-personalizado').value = selectedOption.dataset.personalized; document.getElementById('reg-tipo-nombre').value = selectedOption.dataset.name; } else { document.getElementById('reg-monto').value = ''; document.getElementById('reg-personalizado').value = 'false'; } }
+        // FIX: updatePlanDetails now only sets meta data, NOT price (as requested)
+        function updatePlanDetails() { 
+            const select = document.getElementById('reg-plan'); 
+            const selectedOption = select.options[select.selectedIndex]; 
+            if (selectedOption.value) { 
+                // Do NOT set reg-monto value. User sets price manually.
+                document.getElementById('reg-personalizado').value = selectedOption.dataset.personalized; 
+                document.getElementById('reg-tipo-nombre').value = selectedOption.dataset.name; 
+                document.getElementById('reg-monto').focus(); // UX improvement
+            } else { 
+                document.getElementById('reg-personalizado').value = 'false'; 
+            } 
+        }
         function registerStudent(e) { e.preventDefault(); const dni = document.getElementById('reg-dni').value; if(db.students.find(s => s.dni === dni)) return showToast("El alumno ya existe", "error"); const planSelect = document.getElementById('reg-plan'); const planName = planSelect.options[planSelect.selectedIndex].dataset.name; db.students.push({ dni: dni, tipoDoc: document.getElementById('reg-doc-type').value, nombre: document.getElementById('reg-nombres').value, apellidos: document.getElementById('reg-apellidos').value, telefono: document.getElementById('reg-telefono').value, direccion: document.getElementById('reg-direccion').value, tipoClase: planName, personalizado: document.getElementById('reg-personalizado').value === 'true', fechaInicio: document.getElementById('reg-inicio').value, fechaFin: document.getElementById('reg-fin').value, monto: parseFloat(document.getElementById('reg-monto').value), pagoEstado: document.getElementById('reg-estado-pago').value, tipoPago: document.getElementById('reg-tipo-pago').value, registro: new Date().toISOString() }); saveData(); showToast("Alumno registrado"); e.target.reset(); }
         function getMonday(d) { d = new Date(d); var day = d.getDay(), diff = d.getDate() - day + (day == 0 ? -6 : 1); return new Date(d.setDate(diff)); }
         function getWeeklyChecks(dni, weekStart) { const checks = [false, false, false, false, false, false, false]; const weekDates = []; for(let i=0; i<7; i++) { let d = new Date(weekStart); d.setDate(weekStart.getDate() + i); weekDates.push(d.toISOString().split('T')[0]); } weekDates.forEach((dateStr, idx) => { if(db.attendanceLogs.find(l => l.dni === dni && l.date === dateStr)) checks[idx] = true; }); return checks; }
